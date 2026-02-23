@@ -1,0 +1,109 @@
+.tabsCard {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.tabsHead {
+    padding: 14px;
+    border-bottom: 1px solid #edf2f7;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8fffb;
+}
+
+.tabButtons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.tabBtn {
+    border: 1px solid rgba(25, 166, 107, 0.22);
+    background: #fff;
+    color: var(--g-900);
+    border-radius: 999px;
+    padding: 8px 12px;
+    font-weight: 800;
+    cursor: pointer;
+
+    &:hover {
+        background: rgba(25, 166, 107, 0.08);
+    }
+
+    &.active {
+        background: rgba(15, 106, 69, 0.12);
+        border-color: rgba(15, 106, 69, 0.35);
+    }
+}
+
+.searchWrap {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    min-width: 260px;
+}
+
+.searchInput {
+    width: 320px;
+    max-width: 55vw;
+}
+
+.tableWrap {
+    overflow: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th,
+    td {
+        padding: 12px 14px;
+        border-bottom: 1px solid #edf2f7;
+        text-align: left;
+        font-size: 14px;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+
+    th {
+        font-weight: 900;
+        color: #0f172a;
+        background: #fff;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    tbody tr:hover {
+        background: rgba(25, 166, 107, 0.05);
+    }
+}
+
+.metaRow {
+    padding: 12px 14px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(25, 166, 107, 0.10);
+    border: 1px solid rgba(25, 166, 107, 0.25);
+    color: var(--g-900);
+    font-weight: 800;
+}

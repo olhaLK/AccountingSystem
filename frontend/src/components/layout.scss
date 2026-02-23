@@ -6,9 +6,9 @@
     position: sticky;
     top: 0;
     z-index: 20;
-    background: rgba(255, 255, 255, 0.78);
+    background: rgba(207, 207, 207, 0.78);
     backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--border);
+
 
     &__inner {
         max-width: 1200px;
