@@ -1,0 +1,86 @@
+.tableWrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+
+    thead {
+        background: #f8fffb;
+    }
+
+    th,
+    td {
+        padding: 12px 14px;
+        border-bottom: 1px solid #edf2f7;
+        text-align: left;
+        font-size: 14px;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+
+    th {
+        font-weight: 800;
+        color: #0f172a;
+    }
+
+    tbody tr:hover {
+        background: rgba(25, 166, 107, 0.05);
+    }
+
+    .colId {
+        width: 70px;
+    }
+
+    .colDate {
+        min-width: 240px;
+    }
+
+    .colDuration {
+        width: 130px;
+    }
+
+    .colStatus {
+        width: 240px;
+    }
+}
+
+.selectSmall {
+    padding: 8px 10px;
+    border-radius: 10px;
+    font-weight: 700;
+    width: auto;
+    min-width: 160px;
+}
+
+.miniSpinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin-left: 10px;
+    border-radius: 50%;
+    border: 2px solid rgba(25, 166, 107, 0.25);
+    border-top-color: rgba(25, 166, 107, 0.95);
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.errorBox {
+    margin: 12px 0;
+    padding: 12px;
+    border-radius: 14px;
+    background: #fff1f2;
+    border: 1px solid #fecdd3;
+    color: #9f1239;
+    font-weight: 700;
+}

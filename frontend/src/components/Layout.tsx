@@ -1,28 +1,46 @@
 import { NavLink, Outlet } from "react-router-dom";
-import "./layout.css";
 
 export function Layout() {
     return (
-        <div className="app">
-            <aside className="sidebar">
-                <div className="brand">Med UI</div>
+        <div className="shell">
+            <header className="topbar">
+                <div className="topbar__inner">
+                    <div className="brand">
+                        <div className="brand__mark" />
+                        <div className="brand__text">
+                            <div className="brand__title">Med UI</div>
+                            <div className="brand__subtitle">Appointments & Directories</div>
+                        </div>
+                    </div>
+                </div>
+            </header>
 
-                <nav className="nav">
-                    <NavLink to="/" end className={({ isActive }) => (isActive ? "active" : "")}>
-                        Posts
-                    </NavLink>
-                    <NavLink to="/create" className={({ isActive }) => (isActive ? "active" : "")}>
-                        Create
-                    </NavLink>
-                    <NavLink to="/dictionaries" className={({ isActive }) => (isActive ? "active" : "")}>
-                        Directories
-                    </NavLink>
-                </nav>
-            </aside>
+            <div className="body">
+                <aside className="side card">
+                    <nav className="menu">
+                        <NavLink to="/" end className={({ isActive }) => (isActive ? "menu__item isActive" : "menu__item")}>
+                            Appointments
+                        </NavLink>
+                        <NavLink to="/create" className={({ isActive }) => (isActive ? "menu__item isActive" : "menu__item")}>
+                            Create
+                        </NavLink>
+                        <NavLink to="/dictionaries" className={({ isActive }) => (isActive ? "menu__item isActive" : "menu__item")}>
+                            Dictionaries
+                        </NavLink>
+                    </nav>
 
-            <main className="content">
-                <Outlet />
-            </main>
+                    <div className="side__hint">
+                        <div className="side__hintTitle">Tip</div>
+                        <div className="side__hintText">Start with Create → the record will appear in Appointments.</div>
+                    </div>
+                </aside>
+
+                <main className="main">
+                    <div className="container">
+                        <Outlet />
+                    </div>
+                </main>
+            </div>
         </div>
     );
 }

@@ -1,0 +1,80 @@
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 22px;
+}
+
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.cardPad {
+    padding: 18px;
+}
+
+.btn {
+    appearance: none;
+    border: 1px solid transparent;
+    background: var(--g-700);
+    color: #fff;
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform .05s ease, background .15s ease;
+
+    &:hover {
+        background: var(--g-800);
+    }
+
+    &:active {
+        transform: translateY(1px);
+    }
+}
+
+.btnOutline {
+    background: transparent;
+    color: var(--g-800);
+    border-color: rgba(15, 106, 69, 0.25);
+
+    &:hover {
+        background: rgba(25, 166, 107, 0.08);
+    }
+}
+
+.input,
+.select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: #fff;
+    outline: none;
+
+    &:focus {
+        border-color: rgba(25, 166, 107, 0.55);
+        box-shadow: 0 0 0 4px rgba(25, 166, 107, 0.14);
+    }
+}
+
+.label {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 0 0 6px;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(25, 166, 107, 0.10);
+    color: var(--g-800);
+    font-weight: 750;
+    font-size: 12px;
+    border: 1px solid rgba(25, 166, 107, 0.25);
+}
