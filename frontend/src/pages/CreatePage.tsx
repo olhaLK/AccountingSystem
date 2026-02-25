@@ -53,6 +53,7 @@ export function CreatePage() {
   const [serviceId, setServiceId] = useState<number>(0);
   const [doctorId, setDoctorId] = useState<number>(0);
   const [cabinetId, setCabinetId] = useState<number>(0);
+
   const [startAtLocal, setStartAtLocal] = useState<string>(nowPlusMinutes(60));
   const [durationMinutes, setDurationMinutes] = useState<number>(30);
   const [status, setStatus] = useState<AppointmentStatus>("NEW");
@@ -69,15 +70,17 @@ export function CreatePage() {
     Promise.all([api.doctors(), api.services(), api.cabinets(), api.patients()])
       .then(([d, s, c, p]) => {
         if (canceled) return;
+
         setDoctors(d);
         setServices(s);
         setCabinets(c);
         setPatients(p);
 
-        if (p.length) setPatientId(p[0].PatientId);
-        if (s.length) setServiceId(s[0].ServiceId);
-        if (d.length) setDoctorId(d[0].DoctorId);
-        if (c.length) setCabinetId(c[0].CabinetId);
+        // preselect first items (minimum UX)
+        if (p.length) setPatientId(p[0].patientId);
+        if (s.length) setServiceId(s[0].serviceId);
+        if (d.length) setDoctorId(d[0].doctorId);
+        if (c.length) setCabinetId(c[0].cabinetId);
       })
       .catch((e: unknown) => {
         if (canceled) return;
@@ -94,19 +97,22 @@ export function CreatePage() {
   }, []);
 
   const patientOptions = useMemo(
-    () => toOptions(patients, "PatientId", "FullName", "Phone"),
+    () => toOptions(patients, "patientId", "displayName", "phoneLast4"),
     [patients]
   );
+
   const serviceOptions = useMemo(
-    () => toOptions(services, "ServiceId", "ServiceName", "Modality"),
+    () => toOptions(services, "serviceId", "serviceName", "modality"),
     [services]
   );
+
   const doctorOptions = useMemo(
-    () => toOptions(doctors, "DoctorId", "FullName", "Specialty"),
+    () => toOptions(doctors, "doctorId", "fullName", "specialty"),
     [doctors]
   );
+
   const cabinetOptions = useMemo(
-    () => toOptions(cabinets, "CabinetId", "CabinetName", "Location"),
+    () => toOptions(cabinets, "cabinetId", "cabinetName", "modality"),
     [cabinets]
   );
 
@@ -118,17 +124,16 @@ export function CreatePage() {
     try {
       const iso = new Date(startAtLocal).toISOString();
 
-      const payload = {
-        PatientId: patientId,
-        ServiceId: serviceId,
-        DoctorId: doctorId,
-        CabinetId: cabinetId,
-        StartAt: iso,
-        DurationMinutes: Number(durationMinutes) || 30,
-        Status: status,
-      };
+      const res = await api.createAppointment({
+        patientId,
+        serviceId,
+        doctorId,
+        cabinetId,
+        startAt: iso,
+        durationMinutes: Number(durationMinutes) || 30,
+        status,
+      });
 
-      const res = await api.createAppointment(payload as any);
       setCreatedId(res.NewAppointmentId ?? null);
     } catch (e: unknown) {
       setSubmitErr(e instanceof Error ? e.message : "Failed to create appointment");
@@ -150,7 +155,11 @@ export function CreatePage() {
           <>
             <div className="field">
               <div className="label">Patient</div>
-              <select className="select" value={patientId} onChange={(e) => setPatientId(Number(e.target.value))}>
+              <select
+                className="select"
+                value={patientId}
+                onChange={(e) => setPatientId(Number(e.target.value))}
+              >
                 {patientOptions.map((o) => (
                   <option key={o.value} value={o.value}>
                     {o.label}
@@ -162,7 +171,11 @@ export function CreatePage() {
             <div className="row2">
               <div className="field">
                 <div className="label">Service</div>
-                <select className="select" value={serviceId} onChange={(e) => setServiceId(Number(e.target.value))}>
+                <select
+                  className="select"
+                  value={serviceId}
+                  onChange={(e) => setServiceId(Number(e.target.value))}
+                >
                   {serviceOptions.map((o) => (
                     <option key={o.value} value={o.value}>
                       {o.label}
@@ -173,7 +186,11 @@ export function CreatePage() {
 
               <div className="field">
                 <div className="label">Doctor</div>
-                <select className="select" value={doctorId} onChange={(e) => setDoctorId(Number(e.target.value))}>
+                <select
+                  className="select"
+                  value={doctorId}
+                  onChange={(e) => setDoctorId(Number(e.target.value))}
+                >
                   {doctorOptions.map((o) => (
                     <option key={o.value} value={o.value}>
                       {o.label}
@@ -186,7 +203,11 @@ export function CreatePage() {
             <div className="row2">
               <div className="field">
                 <div className="label">Cabinet</div>
-                <select className="select" value={cabinetId} onChange={(e) => setCabinetId(Number(e.target.value))}>
+                <select
+                  className="select"
+                  value={cabinetId}
+                  onChange={(e) => setCabinetId(Number(e.target.value))}
+                >
                   {cabinetOptions.map((o) => (
                     <option key={o.value} value={o.value}>
                       {o.label}
@@ -197,7 +218,11 @@ export function CreatePage() {
 
               <div className="field">
                 <div className="label">Status</div>
-                <select className="select" value={status} onChange={(e) => setStatus(e.target.value as AppointmentStatus)}>
+                <select
+                  className="select"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value as AppointmentStatus)}
+                >
                   <option value="NEW">NEW</option>
                   <option value="NEED_INFO">NEED_INFO</option>
                   <option value="PRICE_SENT">PRICE_SENT</option>
@@ -244,6 +269,7 @@ export function CreatePage() {
             </div>
 
             {submitErr && <div className="errorBox">{submitErr}</div>}
+
             {createdId !== null && (
               <div className="successBox">
                 Created successfully. NewAppointmentId: <b>{createdId}</b>

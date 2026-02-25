@@ -29,6 +29,7 @@ export function DictionariesPage() {
     Promise.all([api.doctors(), api.services(), api.cabinets(), api.patients()])
       .then(([d, s, c, p]) => {
         if (canceled) return;
+
         setDoctors(d);
         setServices(s);
         setCabinets(c);
@@ -50,29 +51,25 @@ export function DictionariesPage() {
 
   const filteredDoctors = useMemo(() => {
     if (!q.trim()) return doctors;
-    return doctors.filter((d) =>
-      contains(`${d.FullName ?? ""} ${d.Specialty ?? ""}`, q)
-    );
+    return doctors.filter((d) => contains(`${d.fullName ?? ""} ${d.specialty ?? ""}`, q));
   }, [doctors, q]);
 
   const filteredServices = useMemo(() => {
     if (!q.trim()) return services;
-    return services.filter((s) =>
-      contains(`${s.ServiceName ?? ""} ${s.Modality ?? ""}`, q)
-    );
+    return services.filter((s) => contains(`${s.serviceName ?? ""} ${s.modality ?? ""}`, q));
   }, [services, q]);
 
   const filteredCabinets = useMemo(() => {
     if (!q.trim()) return cabinets;
     return cabinets.filter((c) =>
-      contains(`${c.CabinetName ?? ""} ${c.Location ?? ""} ${c.Modality ?? ""}`, q)
+      contains(`${c.cabinetName ?? ""} ${c.cabinetCode ?? ""} ${c.modality ?? ""}`, q)
     );
   }, [cabinets, q]);
 
   const filteredPatients = useMemo(() => {
     if (!q.trim()) return patients;
     return patients.filter((p) =>
-      contains(`${p.FullName ?? ""} ${p.Phone ?? ""}`, q)
+      contains(`${p.displayName ?? ""} ${p.phoneLast4 ?? ""} ${p.patientCode ?? ""}`, q)
     );
   }, [patients, q]);
 
@@ -100,28 +97,16 @@ export function DictionariesPage() {
         <div className="tabsCard">
           <div className="tabsHead">
             <div className="tabButtons">
-              <button
-                className={`tabBtn ${tab === "doctors" ? "active" : ""}`}
-                onClick={() => setTab("doctors")}
-              >
+              <button className={`tabBtn ${tab === "doctors" ? "active" : ""}`} onClick={() => setTab("doctors")}>
                 Doctors
               </button>
-              <button
-                className={`tabBtn ${tab === "services" ? "active" : ""}`}
-                onClick={() => setTab("services")}
-              >
+              <button className={`tabBtn ${tab === "services" ? "active" : ""}`} onClick={() => setTab("services")}>
                 Services
               </button>
-              <button
-                className={`tabBtn ${tab === "cabinets" ? "active" : ""}`}
-                onClick={() => setTab("cabinets")}
-              >
+              <button className={`tabBtn ${tab === "cabinets" ? "active" : ""}`} onClick={() => setTab("cabinets")}>
                 Cabinets
               </button>
-              <button
-                className={`tabBtn ${tab === "patients" ? "active" : ""}`}
-                onClick={() => setTab("patients")}
-              >
+              <button className={`tabBtn ${tab === "patients" ? "active" : ""}`} onClick={() => setTab("patients")}>
                 Patients
               </button>
             </div>
@@ -158,10 +143,10 @@ export function DictionariesPage() {
                 </thead>
                 <tbody>
                   {filteredDoctors.map((d) => (
-                    <tr key={d.DoctorId}>
-                      <td>{d.DoctorId}</td>
-                      <td>{d.FullName}</td>
-                      <td>{d.Specialty ?? "—"}</td>
+                    <tr key={d.doctorId}>
+                      <td>{d.doctorId}</td>
+                      <td>{d.fullName || "-"}</td>
+                      <td>{d.specialty ?? "-"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -175,16 +160,16 @@ export function DictionariesPage() {
                     <th>ID</th>
                     <th>Service</th>
                     <th>Modality</th>
-                    <th>Base price</th>
+                    <th>Base price (UAH)</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredServices.map((s) => (
-                    <tr key={s.ServiceId}>
-                      <td>{s.ServiceId}</td>
-                      <td>{s.ServiceName}</td>
-                      <td>{s.Modality ?? "—"}</td>
-                      <td>{s.BasePrice ?? "—"}</td>
+                    <tr key={s.serviceId}>
+                      <td>{s.serviceId}</td>
+                      <td>{s.serviceName || "-"}</td>
+                      <td>{s.modality ?? "-"}</td>
+                      <td>{s.basePriceUAH ?? "-"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -197,17 +182,17 @@ export function DictionariesPage() {
                   <tr>
                     <th>ID</th>
                     <th>Cabinet</th>
-                    <th>Location</th>
+                    <th>Code</th>
                     <th>Modality</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredCabinets.map((c) => (
-                    <tr key={c.CabinetId}>
-                      <td>{c.CabinetId}</td>
-                      <td>{c.CabinetName}</td>
-                      <td>{c.Location ?? "—"}</td>
-                      <td>{c.Modality ?? "—"}</td>
+                    <tr key={c.cabinetId}>
+                      <td>{c.cabinetId}</td>
+                      <td>{c.cabinetName || "-"}</td>
+                      <td>{c.cabinetCode ?? "-"}</td>
+                      <td>{c.modality ?? "-"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -219,16 +204,16 @@ export function DictionariesPage() {
                 <thead>
                   <tr>
                     <th>ID</th>
-                    <th>Full name</th>
-                    <th>Phone</th>
+                    <th>Display name</th>
+                    <th>Phone (last 4)</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredPatients.map((p) => (
-                    <tr key={p.PatientId}>
-                      <td>{p.PatientId}</td>
-                      <td>{p.FullName}</td>
-                      <td>{p.Phone ?? "—"}</td>
+                    <tr key={p.patientId}>
+                      <td>{p.patientId}</td>
+                      <td>{p.displayName || "-"}</td>
+                      <td>{p.phoneLast4 ?? "-"}</td>
                     </tr>
                   ))}
                 </tbody>

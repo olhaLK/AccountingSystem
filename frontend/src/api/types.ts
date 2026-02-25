@@ -1,31 +1,5 @@
 export type Id = number;
 
-export interface Doctor {
-    DoctorId: Id;
-    FullName: string;
-    Specialty?: string | null;
-}
-
-export interface Service {
-    ServiceId: Id;
-    ServiceName: string;
-    Modality?: string | null;
-    BasePrice?: number | null;
-}
-
-export interface Cabinet {
-    CabinetId: Id;
-    CabinetName: string;
-    Location?: string | null;
-    Modality?: string | null;
-}
-
-export interface Patient {
-    PatientId: Id;
-    FullName: string;
-    Phone?: string | null;
-}
-
 export type AppointmentStatus =
     | "NEW"
     | "NEED_INFO"
@@ -37,13 +11,46 @@ export type AppointmentStatus =
     | "DONE"
     | "CANCELED";
 
+export interface Doctor {
+    doctorId: Id;
+    fullName: string;
+    specialty?: string | null;
+    isActive?: boolean | null;
+}
+
+export interface Service {
+    serviceId: Id;
+    serviceName: string;
+    modality?: string | null;
+    basePriceUAH?: number | null;
+    isActive?: boolean | null;
+}
+
+export interface Cabinet {
+    cabinetId: Id;
+    cabinetName: string;
+    cabinetCode?: string | null;
+    modality?: string | null;
+    isActive?: boolean | null;
+}
+
+export interface Patient {
+    patientId: Id;
+    patientCode?: string | null;
+    displayName: string;
+    phoneLast4?: string | null;
+}
+
 export interface Appointment {
-    AppointmentId: Id;
-    PatientId: Id;
-    ServiceId: Id;
-    DoctorId: Id;
-    CabinetId: Id;
-    StartAt: string;
-    DurationMinutes: number;
-    Status: AppointmentStatus;
+    appointmentId: Id;
+    patientId: Id;
+    doctorId: Id;
+    serviceId: Id;
+    cabinetId: Id;
+    startAt: string;
+    endAt?: string | null;
+    durationMinutes: number;
+    priceUAH?: number | null;
+    status: AppointmentStatus;
+    createdAt?: string | null;
 }
