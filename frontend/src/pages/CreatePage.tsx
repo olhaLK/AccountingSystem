@@ -16,11 +16,9 @@ function toOptions<
     const idRaw = r[idKey];
     const labelRaw = r[labelKey];
     const suffixRaw = suffixKey ? r[suffixKey] : undefined;
-
     const id = Number(idRaw);
     const base = String(labelRaw ?? "");
     const suffix = suffixRaw === null || suffixRaw === undefined ? "" : String(suffixRaw);
-
     const label = suffix ? `${base} — ${suffix}` : base;
 
     return { value: id, label };
@@ -43,21 +41,17 @@ export function CreatePage() {
 
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string>("");
-
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [cabinets, setCabinets] = useState<Cabinet[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
-
   const [patientId, setPatientId] = useState<number>(0);
   const [serviceId, setServiceId] = useState<number>(0);
   const [doctorId, setDoctorId] = useState<number>(0);
   const [cabinetId, setCabinetId] = useState<number>(0);
-
   const [startAtLocal, setStartAtLocal] = useState<string>(nowPlusMinutes(60));
   const [durationMinutes, setDurationMinutes] = useState<number>(30);
   const [status, setStatus] = useState<AppointmentStatus>("NEW");
-
   const [submitting, setSubmitting] = useState(false);
   const [createdId, setCreatedId] = useState<number | null>(null);
   const [submitErr, setSubmitErr] = useState<string>("");
@@ -76,7 +70,6 @@ export function CreatePage() {
         setCabinets(c);
         setPatients(p);
 
-        // preselect first items (minimum UX)
         if (p.length) setPatientId(p[0].patientId);
         if (s.length) setServiceId(s[0].serviceId);
         if (d.length) setDoctorId(d[0].doctorId);

@@ -1,7 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../api/endpoints";
-import type { Appointment, AppointmentStatus } from "../api/types";
+import type { AppointmentStatus } from "../api/types";
 import "./appointments.scss";
+
+type ScheduleRow = {
+  AppointmentId: number;
+  StartAt: string;
+  EndAt: string | null;
+  CabinetCode?: string | null;
+  CabinetName?: string | null;
+  ServiceName?: string | null;
+  ServiceModality?: string | null;
+  PatientCode?: string | null;
+  PriceUAH?: number | null;
+  Status: AppointmentStatus | string;
+  DurationMinutes?: number | null;
+  PatientDisplayName?: string | null;
+  DoctorFullName?: string | null;
+};
 
 function formatDate(iso: string) {
   const d = new Date(iso);
@@ -14,6 +30,20 @@ function formatDate(iso: string) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(d);
+}
+
+function safeNumber(v: unknown): number | null {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function calcDurationMinutes(startIso: string, endIso: string | null | undefined): number {
+  if (!endIso) return 0;
+  const s = new Date(startIso);
+  const e = new Date(endIso);
+  const ms = e.getTime() - s.getTime();
+  if (!Number.isFinite(ms) || ms <= 0) return 0;
+  return Math.round(ms / 60000);
 }
 
 const STATUS_OPTIONS: AppointmentStatus[] = [
@@ -30,55 +60,61 @@ const STATUS_OPTIONS: AppointmentStatus[] = [
 
 function csvEscape(value: unknown): string {
   const s = value === null || value === undefined ? "" : String(value);
-  const needsQuotes = /[",\n\r;]/.test(s);
+  const needsQuotes = /["\n\r;]/.test(s);
   const escaped = s.replace(/"/g, '""');
   return needsQuotes ? `"${escaped}"` : escaped;
 }
 
-function buildAppointmentsCsv(rows: Appointment[]): string {
-  const sep = ";"; // Excel-friendly for RU/UA locales
+function buildScheduleCsv(rows: ScheduleRow[]): string {
+  const sep = ";";
 
   const header = [
-    "appointmentId",
-    "startAt",
-    "endAt",
-    "durationMinutes",
-    "status",
-    "patientId",
-    "doctorId",
-    "serviceId",
-    "cabinetId",
+    "AppointmentId",
+    "StartAt",
+    "EndAt",
+    "DurationMinutes",
+    "Status",
+    "PatientCode",
+    "PatientDisplayName",
+    "DoctorFullName",
+    "ServiceName",
+    "ServiceModality",
+    "CabinetCode",
+    "CabinetName",
+    "PriceUAH",
   ];
 
   const lines = [
-    `sep=${sep}`,                 // <- важно для Excel
+    `sep=${sep}`,
     header.join(sep),
-    ...rows.map((a) =>
-      [
-        a.appointmentId,
-        a.startAt,
-        a.endAt ?? "",
-        a.durationMinutes,
-        a.status,
-        a.patientId,
-        a.doctorId,
-        a.serviceId,
-        a.cabinetId,
-      ]
-        .map(csvEscape)
-        .join(sep)
-    ),
+    ...rows.map((r) => {
+      const duration =
+        r.DurationMinutes !== null && r.DurationMinutes !== undefined
+          ? Number(r.DurationMinutes)
+          : calcDurationMinutes(r.StartAt, r.EndAt);
+
+      return [
+        r.AppointmentId,
+        r.StartAt,
+        r.EndAt ?? "",
+        duration,
+        r.Status ?? "",
+        r.PatientCode ?? "",
+        r.PatientDisplayName ?? "",
+        r.DoctorFullName ?? "",
+        r.ServiceName ?? "",
+        r.ServiceModality ?? "",
+        r.CabinetCode ?? "",
+        r.CabinetName ?? "",
+        r.PriceUAH ?? "",
+      ].map(csvEscape).join(sep);
+    }),
   ];
 
-  // BOM для корректной кодировки в Excel
   return "\uFEFF" + lines.join("\r\n");
 }
 
-function downloadTextFile(
-  filename: string,
-  content: string,
-  mime = "text/csv;charset=utf-8"
-) {
+function downloadTextFile(filename: string, content: string, mime = "text/csv;charset=utf-8") {
   const blob = new Blob([content], { type: mime });
   const url = URL.createObjectURL(blob);
 
@@ -92,91 +128,8 @@ function downloadTextFile(
   URL.revokeObjectURL(url);
 }
 
-function pick<T = any>(raw: any, keys: string[], fallback?: T): T {
-  for (const k of keys) {
-    if (raw && raw[k] !== undefined && raw[k] !== null) return raw[k] as T;
-  }
-  return fallback as T;
-}
-
-function parseDuration(value: any): number {
-  if (value === null || value === undefined) return 0;
-
-  if (typeof value === "number") {
-    return Number.isFinite(value) ? value : 0;
-  }
-
-  if (typeof value === "string") {
-    const trimmed = value.trim();
-    const n = parseInt(trimmed, 10);
-    return Number.isFinite(n) ? n : 0;
-  }
-
-  const n = Number(value);
-  return Number.isFinite(n) ? n : 0;
-}
-
-function durationFromEndStart(startIso: string, endIso: string): number {
-  const s = new Date(startIso);
-  const e = new Date(endIso);
-  const ms = e.getTime() - s.getTime();
-  if (!Number.isFinite(ms) || ms <= 0) return 0;
-  return Math.round(ms / 60000);
-}
-
-function normalizeAppointment(raw: any): Appointment {
-  const appointmentId = Number(pick(raw, ["AppointmentId", "appointmentId", "id"], 0));
-
-  const startAt = String(pick(raw, ["StartAt", "startAt", "Start", "start", "start_at"], ""));
-
-  const endAt = pick<string | undefined>(
-    raw,
-    ["EndAt", "endAt", "End", "end", "end_at"],
-    undefined
-  );
-
-  const durationRaw = pick(
-    raw,
-    [
-      "DurationMinutes",
-      "durationMinutes",
-      "Duration",
-      "duration",
-      "DurationMin",
-      "durationMin",
-      "DurationMins",
-      "durationMins",
-      "DurationInMinutes",
-      "durationInMinutes",
-      "duration_min",
-      "duration_minutes",
-    ],
-    0
-  );
-
-  let duration = parseDuration(durationRaw);
-
-  if (!duration && startAt && endAt) {
-    duration = durationFromEndStart(startAt, String(endAt));
-  }
-
-  const status = String(pick(raw, ["Status", "status"], "NEW")) as AppointmentStatus;
-
-  return {
-    appointmentId,
-    patientId: Number(pick(raw, ["PatientId", "patientId"], 0)),
-    serviceId: Number(pick(raw, ["ServiceId", "serviceId"], 0)),
-    doctorId: Number(pick(raw, ["DoctorId", "doctorId"], 0)),
-    cabinetId: Number(pick(raw, ["CabinetId", "cabinetId"], 0)),
-    startAt,
-    endAt: endAt ?? null,
-    durationMinutes: duration,
-    status,
-  };
-}
-
 export function AppointmentsPage() {
-  const [data, setData] = useState<Appointment[]>([]);
+  const [data, setData] = useState<ScheduleRow[]>([]);
   const [err, setErr] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
@@ -194,13 +147,27 @@ export function AppointmentsPage() {
       .then((rows: any[]) => {
         if (canceled) return;
 
-        console.table(rows?.slice(0, 5) ?? []);
-        console.log("RAW SAMPLE JSON:", JSON.stringify(rows?.[0] ?? null, null, 2));
+        const mapped: ScheduleRow[] = (rows ?? []).map((x: any) => ({
+          AppointmentId: Number(x?.AppointmentId ?? x?.appointmentId ?? 0),
+          StartAt: String(x?.StartAt ?? x?.startAt ?? ""),
+          EndAt: x?.EndAt ?? x?.endAt ?? null,
 
-        const normalized = (rows ?? []).map(normalizeAppointment);
-        setData(normalized);
+          CabinetCode: x?.CabinetCode ?? x?.cabinetCode ?? null,
+          CabinetName: x?.CabinetName ?? x?.cabinetName ?? null,
 
-        console.log("NORMALIZED SAMPLE JSON:", JSON.stringify(normalized?.[0] ?? null, null, 2));
+          ServiceName: x?.ServiceName ?? x?.serviceName ?? null,
+          ServiceModality: x?.ServiceModality ?? x?.serviceModality ?? null,
+
+          DoctorName: x?.DoctorName ?? x?.doctorName ?? null,
+          PatientCode: x?.PatientCode ?? x?.patientCode ?? null,
+
+          PriceUAH: safeNumber(x?.PriceUAH ?? x?.priceUAH),
+          Status: (x?.Status ?? x?.status ?? "NEW") as any,
+
+          DurationMinutes: safeNumber(x?.DurationMinutes ?? x?.durationMinutes),
+        }));
+
+        setData(mapped);
       })
       .catch((e: unknown) => {
         if (!canceled) setErr(e instanceof Error ? e.message : "Failed to load data");
@@ -224,7 +191,7 @@ export function AppointmentsPage() {
       await api.updateAppointmentStatus(appointmentId, next);
 
       setData((prev) =>
-        prev.map((a) => (a.appointmentId === appointmentId ? { ...a, status: next } : a))
+        prev.map((r) => (r.AppointmentId === appointmentId ? { ...r, Status: next } : r))
       );
     } catch (e: unknown) {
       setUpdateErr(e instanceof Error ? e.message : "Failed to update status");
@@ -234,7 +201,7 @@ export function AppointmentsPage() {
   }
 
   function exportCsv() {
-    const csv = buildAppointmentsCsv(data);
+    const csv = buildScheduleCsv(data);
 
     const now = new Date();
     const pad = (n: number) => String(n).padStart(2, "0");
@@ -280,21 +247,27 @@ export function AppointmentsPage() {
               </thead>
 
               <tbody>
-                {data.map((a) => {
-                  const known = statusSet.has(a.status);
+                {data.map((r) => {
+                  const status = String(r.Status ?? "NEW") as AppointmentStatus | string;
+                  const known = statusSet.has(status as AppointmentStatus);
+
+                  const duration =
+                    r.DurationMinutes !== null && r.DurationMinutes !== undefined
+                      ? Number(r.DurationMinutes)
+                      : calcDurationMinutes(r.StartAt, r.EndAt);
 
                   return (
-                    <tr key={a.appointmentId}>
-                      <td className="colId">{a.appointmentId}</td>
-                      <td className="colDate">{formatDate(a.startAt)}</td>
-                      <td className="colDuration">{a.durationMinutes} min</td>
+                    <tr key={r.AppointmentId}>
+                      <td className="colId">{r.AppointmentId}</td>
+                      <td className="colDate">{formatDate(r.StartAt)}</td>
+                      <td className="colDuration">{duration} min</td>
                       <td className="colStatus">
                         <select
                           className="select selectSmall"
-                          value={a.status}
-                          disabled={!known || updatingId === a.appointmentId}
+                          value={known ? (status as AppointmentStatus) : status}
+                          disabled={!known || updatingId === r.AppointmentId}
                           onChange={(e) =>
-                            changeStatus(a.appointmentId, e.target.value as AppointmentStatus)
+                            changeStatus(r.AppointmentId, e.target.value as AppointmentStatus)
                           }
                         >
                           {STATUS_OPTIONS.map((s) => (
@@ -302,10 +275,10 @@ export function AppointmentsPage() {
                               {s}
                             </option>
                           ))}
-                          {!known && <option value={a.status}>{a.status}</option>}
+                          {!known && <option value={status}>{status}</option>}
                         </select>
 
-                        {updatingId === a.appointmentId && (
+                        {updatingId === r.AppointmentId && (
                           <span className="miniSpinner" aria-label="Updating" />
                         )}
                       </td>
